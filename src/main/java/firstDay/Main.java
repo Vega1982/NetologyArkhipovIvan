@@ -99,9 +99,9 @@ public class Main {
 
     // метод для подсчёта эффективности
     public static void effCounter(int counterValue, int worldLength) {
-        double eff = ((worldLength / counterValue) * 100.00D);
-        //DecimalFormat decimalFormat = new DecimalFormat( "#.###" );
-        //String result = decimalFormat.format(eff);
-        System.out.println("Ваша эффективность: " + eff + "%");
+        double eff = (((double) worldLength / (double) counterValue) * 100.00D);
+        DecimalFormat decimalFormat = new DecimalFormat( "#.##" );
+        String result = decimalFormat.format(eff);
+        System.out.println("Ваша эффективность: " + result + "%");
     }
 }
