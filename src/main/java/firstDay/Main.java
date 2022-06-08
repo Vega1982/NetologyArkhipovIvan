@@ -82,7 +82,7 @@ public class Main {
         effCounter(counterValue, word.length());
     }
 
-    // Метод для вписывания букв в слово-маску
+    // Метод для вписывания букв в слово-маску.
 
     /**
      * @param c        буква от игрока
