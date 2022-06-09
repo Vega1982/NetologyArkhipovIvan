@@ -11,7 +11,7 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
 
-        // Ожидаем: -w 1 -b 1 -count 1
+        // Ожидаем: -w 1 -b 1 -count 1 -m 2
         System.out.println("Ehi Pomodoro. Напиши пожалуйста команду");
         String[] cmd = new Scanner(System.in).nextLine().split(" ");
 
@@ -21,20 +21,29 @@ public class Main {
         int sizework = 30;
         int help = 0;
         int count = 1;
+        int multiCap = 1;
 
         for (int i = 0; i < cmd.length; i++) {
             switch (cmd[i]) {
-                case "--help" -> { helpPrinter();
-                    help = 1; }
+                case "--help" -> {
+                    helpPrinter();
+                    help = 1;
+                }
                 case "-w" -> work = Integer.parseInt(cmd[++i]);
                 case "-b" -> breake = Integer.parseInt(cmd[++i]);
                 case "-count" -> count = Integer.parseInt(cmd[++i]);
+                case "-m" -> multiCap = Integer.parseInt(cmd[++i]);
             }
+        }
+        if (multiCap > count) {
+            multiCap = count;
         }
         if (help == 0) {
             long startTime = System.currentTimeMillis();
             for (int i = 1; i <= count; i++) {
+                work = workMultiplier(work, count, multiCap);
                 timer(work, breake, sizebreak, sizework);
+//                count++;
             }
             long endTime = System.currentTimeMillis();
             System.out.println("Pomodor таймер истек: " + (endTime - startTime) / (1000 * 60) + " min");
@@ -88,5 +97,12 @@ public class Main {
                 "	-count <count>: количество итераций.\n");
         System.out.println(
                 "	--help: меню помощи.\n");
+    }
+
+    public static int workMultiplier(int work, int counter, int multiCap) {
+        if (multiCap <= counter) {
+            work = work * counter;
+            return work;
+        } else return work;
     }
 }
