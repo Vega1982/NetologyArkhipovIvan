@@ -15,14 +15,21 @@ public class Main {
         System.out.println("Ehi Pomodoro. Напиши пожалуйста команду");
         String[] cmd = new Scanner(System.in).nextLine().split(" ");
 
+        // переменная для длительности работы
         int work = 50;
+        // переменная для длительности отдыха
         int breake = 10;
+        // переменные для прогресс-бара
         int sizebreak = 30;
         int sizework = 30;
+        // признак вызова помощи в программе
         int help = 0;
+        // счётчик ходов
         int count = 1;
+        // ограничитель, чтобы умножитель не был больше чем кол-во ходов (это мне имеет смысла потому-что)
         int multiCap = 1;
 
+        // основной цикл парсинга
         for (int i = 0; i < cmd.length; i++) {
             switch (cmd[i]) {
                 case "--help" -> {
@@ -35,22 +42,33 @@ public class Main {
                 case "-m" -> multiCap = Integer.parseInt(cmd[++i]);
             }
         }
+
+        // снижаем умножитель до ко-ва ходов
         if (multiCap > count) {
             multiCap = count;
         }
+
+        // очновной цикл работы приложения
         if (help == 0) {
             long startTime = System.currentTimeMillis();
             for (int i = 1; i <= count; i++) {
-                work = workMultiplier(work, count, multiCap);
+
+                // увеличиваем умножитель с каждым ходом
+                if (i <= multiCap) {
+                    work = work * i;
+                }
+                // вызываем метод прогресс-бара
                 timer(work, breake, sizebreak, sizework);
-//                count++;
+
             }
             long endTime = System.currentTimeMillis();
+            // выводим кол-во прошедшего времени
             System.out.println("Pomodor таймер истек: " + (endTime - startTime) / (1000 * 60) + " min");
         }
 
     }
 
+    // вызываем прогресс-барЫ
     public static void timer(int work, int breake, int sizebreak, int sizework) throws InterruptedException {
 
         printProgress("Work Progress::  ", work, sizework);
@@ -58,6 +76,7 @@ public class Main {
         printProgress("Break Progress:: ", breake, sizebreak);
     }
 
+    // метод прогре--бара из инета )
     private static void printProgress(String process, int time, int size) throws InterruptedException {
         int length;
         int rep;
@@ -86,6 +105,7 @@ public class Main {
         System.out.println();
     }
 
+    // метод вывода помощи
     public static void helpPrinter() {
         System.out.println(
                 "\n\nPomodoro - сделай свое время более эффективным\n");
@@ -99,10 +119,4 @@ public class Main {
                 "	--help: меню помощи.\n");
     }
 
-    public static int workMultiplier(int work, int counter, int multiCap) {
-        if (multiCap <= counter) {
-            work = work * counter;
-            return work;
-        } else return work;
-    }
 }
