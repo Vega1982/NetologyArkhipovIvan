@@ -70,7 +70,7 @@ public class Main {
                     }
                 }
 
-                sendMsg(update.getMessage().getChatId(), "Давай работай!");
+                sendMsg(update.getMessage().getChatId(), "Time to hard work!");
             }
         }
 
@@ -86,14 +86,14 @@ public class Main {
 
         public void run() throws InterruptedException {
             while (true) {
-                System.out.printf("Количество таймеров пользователей = %d\n", userTimers.size());
+                System.out.printf("Number of user's timers = %d\n", userTimers.size());
                 userTimers.forEach((time, userId) -> {
-                    System.out.printf("Проверка userId = %d, userTime = %s, now = %s\n", userId, time.toString(), Instant.now());
+                    System.out.printf("Check userId = %d, userTime = %s, now = %s\n", userId, time.toString(), Instant.now());
                     if (Instant.now().isAfter(time.time)) {
                         userTimers.remove(time);
                         switch (time.timerType) {
-                            case WORK -> sendMsg(userId, "Пора отдыхать");
-                            case BREAK -> sendMsg(userId, "Таймер завершил свою работу");
+                            case WORK -> sendMsg(userId, "It's time to rest!");
+                            case BREAK -> sendMsg(userId, "Timer work ended.");
                         }
                     }
                 });
