@@ -19,7 +19,8 @@ public class Main {
 
     private static final ConcurrentHashMap<Pomodoro.Timer, Long> userTimers = new ConcurrentHashMap<>();
 
-    public static void main(String[] args) throws TelegramApiException {
+//    public static void main(String[] args) throws TelegramApiException {
+    public Main() throws TelegramApiException {
         TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
         var pomodoroBot = new Pomodoro();
         botsApi.registerBot(new Pomodoro());
