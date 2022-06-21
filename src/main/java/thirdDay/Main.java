@@ -53,7 +53,7 @@ public class Main {
 
         @Override
         public String getBotToken() {
-            return "Secret :D";
+            return "5311194113:AAFp4OwcTcOXVF_QHuE1w5y8ZMGRnndES8o";
         }
 
         @Override
@@ -111,7 +111,7 @@ public class Main {
 
         @Override
         public String getBotToken() {
-            return "Secret :D";
+            return "5311194113:AAFp4OwcTcOXVF_QHuE1w5y8ZMGRnndES8o";
         }
 
         @Override
