@@ -9,43 +9,47 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Echo и Pomodoro bot
- * С использованием библиотеки org.telegram:telegrambots:6.0.1
- */
 public class Main {
+    private static final String TOKEN = "5311194113:AAFp4OwcTcOXVF_QHuE1w5y8ZMGRnndES8o";
+    // Map
+    // key      value
+    // hello -> привет
+    // задача -> issue
+    // username -> timer
+    // userId -> timer
+    // timer -> userId
+    //
+    // userId -> timer
+    private static final ConcurrentHashMap<PomodoroBot.Timer, Long> userTimers = new ConcurrentHashMap();
 
-    private static final ConcurrentHashMap<Pomodoro.Timer, Long> userTimers = new ConcurrentHashMap<>();
+    public Main(TimerRepository timerRepository) {
 
-//    public static void main(String[] args) throws TelegramApiException {
-    public Main() throws TelegramApiException {
-        TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-        var pomodoroBot = new Pomodoro();
-        botsApi.registerBot(new Pomodoro());
+    }
+
+    public static void main(String[] args) throws TelegramApiException {
+        TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
+        PomodoroBot bot = new PomodoroBot();
+        telegramBotsApi.registerBot(bot);
         new Thread(() -> {
             try {
-                pomodoroBot.run();
+                bot.checkTimer();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                System.out.println("Уппс");
             }
         }).run();
     }
 
-    static class Pomodoro extends TelegramLongPollingBot {
+    static class PomodoroBot extends TelegramLongPollingBot {
 
         enum TimerType {
             WORK,
             BREAK
         }
 
-        static record Timer(Instant time, TimerType timerType) {}
-
-        public Pomodoro() {
-            super();
-
-        }
+        static record Timer(Instant time, TimerType timerType){};
 
         @Override
         public String getBotUsername() {
@@ -54,51 +58,62 @@ public class Main {
 
         @Override
         public String getBotToken() {
-            return "5311194113:AAFp4OwcTcOXVF_QHuE1w5y8ZMGRnndES8o";
+            return TOKEN;
         }
 
         @Override
         public void onUpdateReceived(Update update) {
             if (update.hasMessage() && update.getMessage().hasText()) {
-                var args = update.getMessage().getText().split(" ");
-                var userId = update.getMessage().getChatId();
-                if (args.length >= 1) {
-                    var workTime = Instant.now().plus(Long.parseLong(args[0]), ChronoUnit.MINUTES);
-                    userTimers.put(new Timer(workTime, TimerType.WORK), userId);
-                    if (args.length == 2) {
-                        var breakTime = workTime.plus(Long.parseLong(args[1]), ChronoUnit.MINUTES);
-                        userTimers.put(new Timer(breakTime, TimerType.BREAK), userId);
+                Long chatId = update.getMessage().getChatId();
+                if (update.getMessage().getText().equals("/start")) {
+                    sendMsg("""
+                            Pomodoro - сделай свое время более эффективным.
+                            Задай мне время работы и отдыха через пробел. Например, '1 1'.
+                            PS Я работаю пока в минутах
+                            """, chatId.toString());
+                } else {
+                    var args = update.getMessage().getText().split(" ");
+                    if (args.length >= 1) {
+                        var workTime = Instant.now().plus(Long.parseLong(args[0]), ChronoUnit.MINUTES);
+                        userTimers.put(new Timer(workTime, TimerType.WORK), chatId);
+                        sendMsg("Давай работай!", chatId.toString());
+                        if (args.length >= 2) {
+                            var breakTime = workTime.plus(Long.parseLong(args[1]), ChronoUnit.MINUTES);
+                            userTimers.put(new Timer(breakTime, TimerType.BREAK), chatId);
+                        }
                     }
                 }
-
-                sendMsg(update.getMessage().getChatId(), "Time to hard work!");
             }
         }
 
-        private void sendMsg(Long chatId, String msgStr) {
-            SendMessage msg = new SendMessage(chatId.toString(), msgStr);
-            try {
-                execute(msg);
-            } catch (TelegramApiException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-        public void run() throws InterruptedException {
-            while (true) {
-                System.out.printf("Number of user's timers = %d\n", userTimers.size());
-                userTimers.forEach((time, userId) -> {
-                    System.out.printf("Check userId = %d, userTime = %s, now = %s\n", userId, time.toString(), Instant.now());
-                    if (Instant.now().isAfter(time.time)) {
-                        userTimers.remove(time);
-                        switch (time.timerType) {
-                            case WORK -> sendMsg(userId, "It's time to rest!");
-                            case BREAK -> sendMsg(userId, "Timer work ended.");
+        public void checkTimer() throws InterruptedException {
+            while(true) {
+                System.out.println("Количество таймеров пользователей " + userTimers.size());
+                userTimers.forEach((timer, userId) -> {
+                    System.out.printf("Проверка userId = %d, server_time = %s, user_timer = %s\n",
+                            userId, Instant.now().toString(), timer.time.toString());
+                    if (Instant.now().isAfter(timer.time)) {
+                        userTimers.remove(timer);
+                        switch (timer.timerType) {
+                            case WORK -> sendMsg("Пора отдыхать", userId.toString());
+                            case BREAK -> sendMsg("Таймер завершил свою работу", userId.toString());
                         }
                     }
                 });
                 Thread.sleep(1000);
+            }
+        }
+
+        private void sendMsg(String text, String chatId) {
+            SendMessage msg = new SendMessage();
+            // пользователь чата
+            msg.setChatId(chatId);
+            msg.setText(text);
+
+            try {
+                execute(msg);
+            } catch (TelegramApiException e) {
+                System.out.println("Уппс");
             }
         }
     }
@@ -107,24 +122,45 @@ public class Main {
 
         @Override
         public String getBotUsername() {
-            return "Echo bot";
+            return "Попугай bot";
         }
 
         @Override
         public String getBotToken() {
-            return "5311194113:AAFp4OwcTcOXVF_QHuE1w5y8ZMGRnndES8o";
+            return TOKEN;
         }
 
+        /**
+         * Обработка входящих сообщений
+         */
         @Override
         public void onUpdateReceived(Update update) {
+            int userCount = 0;
             if (update.hasMessage() && update.getMessage().hasText()) {
-                SendMessage msg = new SendMessage(update.getMessage().getChatId().toString(),
-                        update.getMessage().getText());
-                try {
-                    execute(msg);
-                } catch (TelegramApiException e) {
-                    e.printStackTrace();
+                if (update.getMessage().getText().equals("/start")) {
+                    userCount+=1;
+                    System.out.println("Новый пользователь " + userCount);
+                    // приветсвие
+                    sendMsg("Я попугай бот",
+                            update.getMessage().getChatId().toString());
+                } else {
+                    System.out.println("Обработка сообщений");
+                    sendMsg(update.getMessage().getText().toUpperCase(Locale.ROOT),
+                            update.getMessage().getChatId().toString());
                 }
+            }
+        }
+
+        private void sendMsg(String text, String chatId) {
+            SendMessage msg = new SendMessage();
+            // пользователь чата
+            msg.setChatId(chatId);
+            msg.setText(text);
+
+            try {
+                execute(msg);
+            } catch (TelegramApiException e) {
+                System.out.println("Уппс");
             }
         }
     }
